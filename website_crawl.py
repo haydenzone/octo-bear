@@ -1,12 +1,12 @@
 import re
-import urllib.request
+import urllib2
 from time import time, sleep
 
 html_code = "<a href='http://blah.com/'>haha</a> <a href='http://blah.com/'>haha</a><a href='/asdf' href=\"sfad\">"
 
-url = 'http://www.chubbychipmunk.net/'
 url = 'http://www.python.org/'
-f = urllib.request.urlopen(url)
+url = 'http://www.chubbychipmunk.net/'
+f = urllib2.urlopen(url)
 html_code = str(f.read())
 links = {url: False}
 def has_false(d):
@@ -20,7 +20,7 @@ while(has_false(links)):
          cur_url = key
          break
    print("Searching %s"%cur_url)
-   opener = urllib.request.build_opener()
+   opener = urllib2.build_opener()
    #opener.addheaders = [('User-agent', 'Magic Browser')]
 
    hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -41,10 +41,10 @@ while(has_false(links)):
       success = False
       error = ""
       try:
-         #f = urllib.request.urlopen(cur_url)
+         #f = urllib2.urlopen(cur_url)
          f = opener.open(cur_url)
          success = True
-      except urllib.error.HTTPError as e:
+      except urllib2.HTTPError as e:
          #continue
          success = False
          error = str(e)
