@@ -10,12 +10,16 @@ def foo(event = None):
     targetURL.set('')
 
 
+def bar(event):
+    global workOutput
+    exit(0)
+    
 
 root = Tk()
 root.title('Octo-Bear')
 root.resizable(0, 0)
-root.bind('<Command-q>', foo)
-
+root.bind('<Control-q>', bar)
+root.bind('<Control-w>', bar)
 
 
 path = 'logo/octobear__bearctopus_by_blazegryph-d4pte5b.gif'
@@ -25,7 +29,7 @@ canvas.pack(side=TOP, expand = YES, fill = BOTH)
 
 logo = PhotoImage(file = path)
 canvas.create_image(300, 0, image = logo, anchor = N)
-
+	
 frame = Frame(root)
 
 Label(frame, text = 'Target URL:').pack(side = LEFT)
