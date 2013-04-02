@@ -1,13 +1,14 @@
 from bs4 import BeautifulSoup
-import urllib2
+import requests
 
 
 
 '''
 Returns a list of the forms as dict objects
 Dependancy: BeautifulSoup
+            requests
 Usage:
-    forms = pack_forms('http://www.sungjkang.com/~lna/')
+    forms = pack_forms('http://localhost')
 
     for form in forms:
         for key, val in form.items():
@@ -15,12 +16,8 @@ Usage:
 
 '''
 def pack_forms(url):
-    page = urllib2.urlopen(url)
-    formatted = ''
-    for i in page:
-        formatted += i
-    page = formatted.lower()
-    soup = BeautifulSoup(page)
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text.lower())
 
     forms = []
 
@@ -44,7 +41,9 @@ def pack_forms(url):
             
     return forms
     
+def send_request(form):
+    pass
     
     
-    
+
 
