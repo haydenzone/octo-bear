@@ -17,8 +17,8 @@ class OctoBearApp:
             def write(self, s):
                 self.widget.config(state = NORMAL)
                 self.widget.insert(END, str(s))
-                #self.TEXT_INFO.config(text=self.TEXT_INFO.cget('text') + str)
                 self.widget.config(state = DISABLED)
+                
 
         self.path = 'logo/octobear__bearctopus_by_blazegryph-d4pte5b.gif'
 
@@ -34,7 +34,9 @@ class OctoBearApp:
         self.targetURL = StringVar()
         self.urlEntry = Entry(self.frame, textvariable = self.targetURL)
         self.urlEntry.bind('<Return>', self.start)
+        self.urlEntry.bind('<Button-1>', self.selectAll)
         self.urlEntry.pack(side = LEFT, expand = YES, fill = X)
+        self.urlEntry.focus()
         self.startButton = Button(self.frame, text = 'Start', command = self.start)
         self.startButton.pack(side = RIGHT)
 
@@ -51,33 +53,57 @@ class OctoBearApp:
 
         self.scrollbar.config(command = self.workOutput.yview)
         
+        
+        #redirect stdout to gui
         sys.stdout = StdoutRedirector(self.workOutput)
+        sys.stderr = StdoutRedirector(self.workOutput)
+        
         root.mainloop()
+
+
+    def selectAll(self, event = None):
+        self.urlEntry.select_range(0, END)
+        self.urlEntry.focus()
+        return 'break'
 
     def start(self, event = None):
         self.targetURL
+        self.startButton.config(state = DISABLED)
+        self.urlEntry.config(state = DISABLED)
         #get url list from targetURL
-        links = []
-        links.append(self.targetURL.get())
+        #links = []
+        #links.append(self.targetURL.get())
         
-        #print 'hello there'
-        #crawler = OctoBearCrawler(self.targetURL.get())
-        for url in links:
-            try:
-                obfh = OctoBearFormHandler(url)
-                obfh.sendRequest()
-            except:
-                sys.stdout.write('Invalid URL: "' + url + '"\n')
+        
+        try:
+            crawler = OctoBearCrawler(str(self.targetURL.get()))
+            crawler.crawl()
+            links = crawler.links
+        except:
+            links = {}
+            
+        if len(links) > 0:
+            for url, state in links.items():
+                if state:
+                    try:
+                        obfh = OctoBearFormHandler(url)
+                        obfh.sendRequest()
+                    except:
+                        sys.stderr.write('Invalid URL: "' + url + '"\n')
+        else:
+            print "no links found"
+            
+            
+        self.startButton.config(state = NORMAL)
+        self.urlEntry.config(state = NORMAL)
+                
+        
         
 
     def quit(self, event):
         exit(0)
         
 
-
-#root = Tk()
-#app = OctoBearApp(root)
-#root.mainloop()
 
 OctoBearApp(Tk())
 
