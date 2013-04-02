@@ -49,9 +49,6 @@ class OctoBearApp:
         self.workOutput.config(state = DISABLED)
         self.workOutput.pack()
 
-        #workOutput = Display(root, scrollbar)
-        #workOutput.pack()
-
         self.scrollbar.config(command = self.workOutput.yview)
         
         sys.stdout = StdoutRedirector(self.workOutput)
