@@ -19,15 +19,15 @@ class OctoBearFormHandler:
         r = requests.get(self._url)
         soup = BeautifulSoup(r.text.lower())
 
-        self._forms = []
+        self.forms = []
 
         for form in soup.findAll('form'):
-            self._forms.append(dict())
-            i = len(self._forms) - 1
-            self._forms[i]['action'] = form.get('action', None)
-            self._forms[i]['method'] = form.get('method', None)
+            self.forms.append(dict())
+            i = len(self.forms) - 1
+            self.forms[i]['action'] = form.get('action', None)
+            self.forms[i]['method'] = form.get('method', None)
             input_fields = form.findAll('input')
-            self._forms[i]['input'] = []
+            self.forms[i]['input'] = []
             for input_field in input_fields:
                 #print item, '\n'
                 temp = dict()
@@ -36,7 +36,7 @@ class OctoBearFormHandler:
                 temp['value'] = input_field.get('value', None)
                 temp['class'] = input_field.get('class', None)
                 temp['type'] = input_field.get('type', None)
-                self._forms[i]['input'].append(temp)
+                self.forms[i]['input'].append(temp)
         
         
     def setURL(self, url):
@@ -57,7 +57,7 @@ class OctoBearFormHandler:
 
     '''
     def getForms(self):
-        return self._forms
+        return self.forms
         
         
     '''
@@ -65,8 +65,16 @@ class OctoBearFormHandler:
     the action URL
     '''
     def sendRequest(self):
-        if self._forms is None:
+        if self.forms is None:
             return
-        print 'Injecting'
+                    
+        for form in self.forms:
+            payload = {}
+            print form['input']
+            
+        
+            #print 'Injecting'            
+            #r = requests.post(self._url, data = self.forms)
+
 
 
