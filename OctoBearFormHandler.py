@@ -64,17 +64,31 @@ class OctoBearFormHandler:
     Goes through each form item and attempts to send a request to
     the action URL
     '''
-    def sendRequest(self):
+    def sendRequest(self, config):
         if self.forms is None:
             return
-                    
-        for form in self.forms:
-            payload = {}
-            print form['input']
-            
         
-            #print 'Injecting'            
-            #r = requests.post(self._url, data = self.forms)
+        if config[1].get == 0:
+            return
+            
+        fin = open('config/'+config[0], 'r')
+        self.commands = []
+        for l in fin:
+            self.commands.append(l.strip('\n'))
+                    
+        for command in self.commands:
+            for form in self.forms:
+                
+                payload = {}
+                for tag in form['input']:
+                    if tag['type'] == 'text':
+                        payload['name'] = command
+                
+                #print 'url=' , self._url
+                
+                print 'Injecting'
+                r = requests.post(self._url + '/' + form['action'], data = payload)
+                print r.text
 
 
 

@@ -16,7 +16,11 @@ class OctoBearApp(Frame):
         
         self.__setMenuBar()
         
-        self.config = listdir('config')
+        config = listdir('config')
+        self.configs = []
+        for f in config:
+            if f.find('~') == -1:
+                self.configs.append((f, IntVar()))
         
         
         class IORedirector(object):
@@ -61,13 +65,18 @@ class OctoBearApp(Frame):
             
         if len(links) > 0:
             for url, state in links.items():
+                #self.forms = []
                 print "found url:" , url
                 if state:
 #                    try:
                         obfh = OctoBearFormHandler(url)
                         for form in obfh.forms:
+                            #form[1] = IntVar()
+                            #self.createCheckbutton(self.formsFrame, form)
                             Label(self.formsFrame, text='action='+form['action'], background='white').pack()
-                        #obfh.sendRequest()
+                            
+                        for config in self.configs:
+                            obfh.sendRequest(config)
  #                   except:
   #                      sys.stderr.write('Invalid URL: "' + url + '"\n')
         else:
@@ -96,23 +105,23 @@ class OctoBearApp(Frame):
     def __setGUI(self):
 
         '''Config Dir / Commands'''
-        self.commandsContainer = Frame(self.master)
-        Label(self.commandsContainer, text='Commands').pack()
-        self.commandsCanvas = Canvas(self.commandsContainer, background='white', width=175)
-        self.commandsFrame = Frame(self.commandsCanvas)
-        self.commandsScrollbar = Scrollbar(self.commandsContainer, command = self.commandsCanvas.yview)
-        self.commandsCanvas.config(yscrollcommand = self.commandsScrollbar.set)
-        self.commandsScrollbar.pack(side = LEFT, fill = Y)
-        self.commandsCanvas.pack(side = LEFT, fill = BOTH)
-        self.commandsCanvas.create_window((0,0), window = self.commandsFrame, anchor = 'nw')
-        self.commandsFrame.bind('<Configure>', self.onFrameConfigure)
-        for f in self.config:
-            if f.find('~') == -1:
-                Label(self.commandsFrame, text=f, background='white').pack()
-            
-        self.commandsContainer.grid(row = 0, column = 0)
-	
+        self.configsContainer = Frame(self.master)
+        Label(self.configsContainer, text='Commands').pack()
+        self.configsCanvas = Canvas(self.configsContainer, background='white', width=175)
+        self.configsFrame = Frame(self.configsCanvas)
+        self.configsScrollbar = Scrollbar(self.configsContainer, command = self.configsCanvas.yview)
+        self.configsCanvas.config(yscrollcommand = self.configsScrollbar.set)
+        self.configsScrollbar.pack(side = LEFT, fill = Y)
+        self.configsCanvas.pack(side = LEFT, fill = BOTH)
+        self.configsCanvas.create_window((0,0), window = self.configsFrame, anchor = 'nw')
+        self.configsFrame.bind('<Configure>', self.onFrameConfigure)
         
+        '''create the checkbuttons for each config file'''
+        for config in self.configs:
+            self.createCheckbutton(self.configsFrame, config)
+            
+        self.configsContainer.grid(row = 0, column = 0)
+	        
         '''Logo'''        
         self.path = 'logo/octobear__bearctopus_by_blazegryph-d4pte5b.gif'
         self.logoFrame = Frame(self.master)
@@ -168,8 +177,14 @@ class OctoBearApp(Frame):
 
     def onFrameConfigure(self, event):
         self.formsCanvas.configure(scrollregion = self.formsCanvas.bbox('all'))
-        self.commandsCanvas.configure(scrollregion = self.commandsCanvas.bbox('all'))
+        self.configsCanvas.configure(scrollregion = self.configsCanvas.bbox('all'))
         
+    def createCheckbutton(self, parent, command):
+        c = Checkbutton(parent, text = command[0], background = 'white', highlightthickness=0, variable = command[1])
+        c.select()
+        c.pack()
+        
+
     def quit(self, event = None):
         exit(0)
         
