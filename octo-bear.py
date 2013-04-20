@@ -76,20 +76,14 @@ class OctoBearApp(Frame):
             
         if len(links) > 0:
             for url, state in links.items():
-                #self.forms = []
                 print "found url:" , url
                 if state:
 #                    try:
                         self.obfh = OctoBearFormHandler(url)
                         for form in self.obfh.forms:
-                            #form[1] = IntVar()
-                            #self.createCheckbutton(self.formsFrame, form)
                             Label(self.formsFrame, text='action='+form['action'], background='white').pack()
                         self.__permutePayloads(form['action'], form['input'])
-                        #for config in self.configs:
-                            #obfh.sendRequest(config)
- #                   except:
-  #                      sys.stderr.write('Invalid URL: "' + url + '"\n')
+                        
         else:
             print "no links found"
             
@@ -106,14 +100,18 @@ class OctoBearApp(Frame):
         payload[inputs[offset]['name']] = None
         
         temp = [i for i in self.configs if i[0] == inputs[offset]['name']]
-        if len(temp) > 0:
+        if len(temp) > 0 and temp[0][1].get() == 1:
             for i in temp[0][2]:
                 payload[inputs[offset]['name']] = i
                 self.__permutePayloads(action, inputs, payload, offset + 1)
             
         else:
             self.__permutePayloads(action, inputs, payload, offset + 1)
-            
+        
+        temp = [i for i in self.configs if i[0] == 'sql_injections']
+        for i in temp[0][2]:
+            payload[inputs[offset]['name']] = i
+            self.__permutePayloads(action, inputs, payload, offset + 1)
         
         
         
