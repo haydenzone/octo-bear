@@ -6,32 +6,26 @@ from fnmatch import fnmatch
 from OctoBearFormHandler import OctoBearFormHandler
 from OctoBearCrawler import OctoBearCrawler
 
-
 class OctoBearApp(Frame):
     def __init__(self, root = None):
         Frame.__init__(self, root)
-        self.master.title('Octo-Bear')
-        self.master.resizable(0, 0)
-        self.master.bind('<Control-q>', self.quit)
-        
-        self.__setMenuBar()
-        
-        config = listdir('config')
-        self.configs = []
-        for f in config:
-            if f.find('~') == -1:
-                self.configs.append((f, IntVar()))
-        
         
         class IORedirector(object):
             def __init__(self, widget):
-                self.widget = widget
-        
+                    self.widget = widget
+            
         class StdoutRedirector(IORedirector):
             def write(self, s):
                 self.widget.config(state = NORMAL)
                 self.widget.insert(END, str(s))
                 self.widget.config(state = DISABLED)
+
+        self.master.title('Octo-Bear')
+        self.master.resizable(0, 0)
+        self.master.bind('<Control-q>', self.quit)
+        self.__setMenuBar()
+        self.__loadConfig()
+        
         
         self.__setGUI()
         
@@ -39,12 +33,29 @@ class OctoBearApp(Frame):
         sys.stdout = StdoutRedirector(self.workOutput)
         sys.stderr = StdoutRedirector(self.workOutput)
         
-
+    def __loadConfig(self):
+        config = listdir('config')
+        self.configs = []
+        for name in config:
+            if name.find('~') == -1:
+                self.configs.append((name, IntVar(), []))
+                fin = open('config/'+name)
+                for line in fin:
+                    self.configs[-1][2].append(line.strip('\n'))
+                fin.close()
+                
+                
+        
 
     def selectAll(self, event = None):
         self.urlEntry.select_range(0, END)
         self.urlEntry.focus()
         return 'break'
+        
+    def clear(self, event = None):
+        self.workOutput.config(state = NORMAL)
+        self.workOutput.delete('1.0', END)
+        self.workOutput.config(state = DISABLED)
 
     def start(self, event = None):
         self.targetURL
@@ -69,14 +80,14 @@ class OctoBearApp(Frame):
                 print "found url:" , url
                 if state:
 #                    try:
-                        obfh = OctoBearFormHandler(url)
-                        for form in obfh.forms:
+                        self.obfh = OctoBearFormHandler(url)
+                        for form in self.obfh.forms:
                             #form[1] = IntVar()
                             #self.createCheckbutton(self.formsFrame, form)
                             Label(self.formsFrame, text='action='+form['action'], background='white').pack()
-                            
-                        for config in self.configs:
-                            obfh.sendRequest(config)
+                        self.__permutePayloads(form['action'], form['input'])
+                        #for config in self.configs:
+                            #obfh.sendRequest(config)
  #                   except:
   #                      sys.stderr.write('Invalid URL: "' + url + '"\n')
         else:
@@ -85,7 +96,28 @@ class OctoBearApp(Frame):
             
         self.startButton.config(state = NORMAL)
         self.urlEntry.config(state = NORMAL)
-                
+
+    def __permutePayloads(self, action, inputs, payload = None, offset = 0):
+        if offset == len(inputs):
+            self.obfh.sendRequest(action, payload)
+            return
+        if payload is None:
+            payload = {}
+        payload[inputs[offset]['name']] = None
+        
+        temp = [i for i in self.configs if i[0] == inputs[offset]['name']]
+        if len(temp) > 0:
+            for i in temp[0][2]:
+                payload[inputs[offset]['name']] = i
+                self.__permutePayloads(action, inputs, payload, offset + 1)
+            
+        else:
+            self.__permutePayloads(action, inputs, payload, offset + 1)
+            
+        
+        
+        
+        
         
     def __setMenuBar(self):
         self.menubar = Menu(self)
@@ -108,7 +140,7 @@ class OctoBearApp(Frame):
         self.configsContainer = Frame(self.master)
         Label(self.configsContainer, text='Commands').pack()
         self.configsCanvas = Canvas(self.configsContainer, background='white', width=175)
-        self.configsFrame = Frame(self.configsCanvas)
+        self.configsFrame = Frame(self.configsCanvas, background = 'white')
         self.configsScrollbar = Scrollbar(self.configsContainer, command = self.configsCanvas.yview)
         self.configsCanvas.config(yscrollcommand = self.configsScrollbar.set)
         self.configsScrollbar.pack(side = LEFT, fill = Y)
@@ -136,7 +168,7 @@ class OctoBearApp(Frame):
         self.formsContainer = Frame(self.master)
         Label(self.formsContainer, text='Forms').pack()
         self.formsCanvas = Canvas(self.formsContainer, width=175, background='white')
-        self.formsFrame = Frame(self.formsCanvas)
+        self.formsFrame = Frame(self.formsCanvas, background = 'white')
         self.formsScrollbar = Scrollbar(self.formsContainer, command = self.formsCanvas.yview)
         self.formsCanvas.config(yscrollcommand = self.formsScrollbar.set)
         self.formsScrollbar.pack(side = RIGHT, fill = Y)
@@ -155,6 +187,11 @@ class OctoBearApp(Frame):
         self.urlEntry.bind('<Button-1>', self.selectAll)
         self.urlEntry.pack(side = LEFT, expand = YES, fill = BOTH)
         self.urlEntry.focus()
+        
+        
+        self.clearButton = Button(self.urlFrame, text = 'Clear', command = self.clear)
+        self.clearButton.pack(side = RIGHT)
+        
         self.startButton = Button(self.urlFrame, text = 'Start', command = self.start)
         self.startButton.pack(side = RIGHT)
         
@@ -182,7 +219,7 @@ class OctoBearApp(Frame):
     def createCheckbutton(self, parent, command):
         c = Checkbutton(parent, text = command[0], background = 'white', highlightthickness=0, variable = command[1])
         c.select()
-        c.pack()
+        c.pack(anchor = W)
         
 
     def quit(self, event = None):
