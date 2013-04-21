@@ -1,9 +1,8 @@
 import os
 import sys
 import re
-import myeditor
 from tkinter import *
-from tkinter.filedialog import asksaveasfile
+from tkinter.filedialog import asksaveasfile,askdirectory
 
 ####################################################################
 #   GUI
@@ -156,9 +155,14 @@ def bracket_delta(str):
 #   Main
 ####################################################################
 
+#Check for correct command line usage, otherwise prompt for directory
+if len(sys.argv) != 2:
+    rootdir = askdirectory()
+else:
+    rootdir = sys.argv[1]
+    
 #Crawl rootdir for php files
 fileList = []
-rootdir = sys.argv[1]
 for root, subFolders, files in os.walk(rootdir):
     for file in files:
         ext = os.path.splitext(file)[1]
