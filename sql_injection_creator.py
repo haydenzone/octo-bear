@@ -3,6 +3,7 @@ import sys
 import re
 from tkinter import *
 from tkinter.filedialog import asksaveasfile,askdirectory
+from tkinter.messagebox import *
 
 ####################################################################
 #   GUI
@@ -34,7 +35,7 @@ class Application(Frame):
         file = asksaveasfile()
         self.save_injection()
         for i, entry in self.injections.items():
-            file.write(entry[0]+" "+entry[1]+"\n")
+            file.write(entry[0]+" ~ "+entry[1]+"\n")
 
     def save_injection(self):
         check = self.check_entry.get(1.0, END)
@@ -218,7 +219,9 @@ for filename in fileList:
             queries.append(temp)
 #print(queries)
 
-
+if len(queries) == 0:
+    showerror('SQL Injection Creator', message="No PHP source found")
+    
 root = Tk()
 app = Application(master=root, queries=queries)
 app.mainloop()
