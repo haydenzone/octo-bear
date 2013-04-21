@@ -221,6 +221,7 @@ for filename in fileList:
 
 if len(queries) == 0:
     showerror('SQL Injection Creator', message="No PHP source found")
+    exit()
     
 root = Tk()
 app = Application(master=root, queries=queries)
