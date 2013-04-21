@@ -48,7 +48,8 @@ class OctoBearApp(Frame):
                 self.configs.append((name, IntVar(), []))
                 fin = open('config/'+name)
                 for line in fin:
-                    self.configs[-1][2].append(line.strip('\n'))
+                    if line[0] != '#':
+                        self.configs[-1][2].append(line.strip('\n'))
                 fin.close()
                 
     def __loadDBInfo(self):
@@ -128,7 +129,7 @@ class OctoBearApp(Frame):
                 if endCount != startCount:
                     print 'FAILED', payload
             except:
-                print 'PASSED' ,payload
+                pass
             return
         if payload is None:
             payload = {}
@@ -179,8 +180,8 @@ class OctoBearApp(Frame):
         self.configsFrame = Frame(self.configsCanvas, background = 'white')
         self.configsScrollbar = Scrollbar(self.configsContainer, command = self.configsCanvas.yview)
         self.configsCanvas.config(yscrollcommand = self.configsScrollbar.set)
-        self.configsScrollbar.pack(side = LEFT, fill = Y)
-        self.configsCanvas.pack(side = LEFT, fill = BOTH)
+        self.configsScrollbar.pack(side = RIGHT, fill = Y)
+        self.configsCanvas.pack(side = RIGHT, fill = BOTH)
         self.configsCanvas.create_window((0,0), window = self.configsFrame, anchor = 'nw')
         self.configsFrame.bind('<Configure>', self.onFrameConfigure)
         
@@ -188,16 +189,16 @@ class OctoBearApp(Frame):
         for config in self.configs:
             self.createCheckbutton(self.configsFrame, config)
             
-        self.configsContainer.grid(row = 0, column = 0)
+        self.configsContainer.grid(row = 1, column = 0)
 	        
         '''Logo'''        
         self.path = 'logo/octobear__bearctopus_by_blazegryph-d4pte5b.gif'
         self.logoFrame = Frame(self.master)
-        self.canvas = Canvas(self.logoFrame, width = 200, height = 267)
+        self.canvas = Canvas(self.logoFrame, width = 75, height = 100)
         self.canvas.pack(side=TOP, fill = BOTH)
         self.logo = PhotoImage(file = self.path)
-        self.canvas.create_image(100, 0, image = self.logo, anchor = N)
-        self.logoFrame.grid(row = 0, column = 1)
+        self.canvas.create_image(75/2, 0, image = self.logo, anchor = N)
+        self.logoFrame.grid(row = 0, column = 0)
              
         
         '''Forms'''
@@ -211,7 +212,7 @@ class OctoBearApp(Frame):
         self.formsCanvas.pack(side = RIGHT, fill = BOTH)
         self.formsCanvas.create_window((0,0), window = self.formsFrame, anchor = 'ne')
         self.formsFrame.bind('<Configure>', self.onFrameConfigure)
-        self.formsContainer.grid(row = 0, column = 2)
+        self.formsContainer.grid(row = 2, column = 0)
 	
 	
         '''URL Entry'''
@@ -231,7 +232,7 @@ class OctoBearApp(Frame):
         self.startButton = Button(self.urlFrame, text = 'Start', command = self.start)
         self.startButton.pack(side = RIGHT)
         
-        self.urlFrame.grid(row = 2, column = 0, columnspan = 3)
+        self.urlFrame.grid(row = 0, column = 1)
         
         
         '''Output'''
@@ -240,13 +241,13 @@ class OctoBearApp(Frame):
         self.outputScrollbar.pack(side = RIGHT, fill = Y)
 
 
-        self.workOutput = Text(self.outputFrame, wrap = WORD, yscrollcommand = self.outputScrollbar.set)
+        self.workOutput = Text(self.outputFrame, wrap = WORD, yscrollcommand = self.outputScrollbar.set, height=40)
         self.workOutput.config(state = DISABLED)
         self.workOutput.pack(fill = BOTH)
 
         self.outputScrollbar.config(command = self.workOutput.yview)
         
-        self.outputFrame.grid(row = 3, column = 0, columnspan = 3)
+        self.outputFrame.grid(row = 1, column = 1, rowspan= 3)
 
     def onFrameConfigure(self, event):
         self.formsCanvas.configure(scrollregion = self.formsCanvas.bbox('all'))
