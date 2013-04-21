@@ -5,6 +5,7 @@ from os import listdir
 from fnmatch import fnmatch
 from OctoBearFormHandler import OctoBearFormHandler
 from OctoBearCrawler import OctoBearCrawler
+import mysql.connector
 
 class OctoBearApp(Frame):
     def __init__(self, root = None):
@@ -15,9 +16,15 @@ class OctoBearApp(Frame):
                     self.widget = widget
             
         class StdoutRedirector(IORedirector):
+            
             def write(self, s):
                 self.widget.config(state = NORMAL)
-                self.widget.insert(END, str(s))
+                if str(s).find('FAILED') >= 0:
+                    self.widget.tag_config('error', background='red', foreground='black')
+        
+                    self.widget.insert(END, str(s), ('error'))
+                else:
+                    self.widget.insert(END, str(s), ('pass'))
                 self.widget.config(state = DISABLED)
 
         self.master.title('Octo-Bear')
@@ -25,13 +32,13 @@ class OctoBearApp(Frame):
         self.master.bind('<Control-q>', self.quit)
         self.__setMenuBar()
         self.__loadConfig()
-        
-        
         self.__setGUI()
+        self.__loadDBInfo()
         
         #redirect stdout to gui
         sys.stdout = StdoutRedirector(self.workOutput)
         sys.stderr = StdoutRedirector(self.workOutput)
+        
         
     def __loadConfig(self):
         config = listdir('config')
@@ -44,7 +51,25 @@ class OctoBearApp(Frame):
                     self.configs[-1][2].append(line.strip('\n'))
                 fin.close()
                 
-                
+    def __loadDBInfo(self):
+        dbFile = open('db')
+        self.dbInfo = {}
+        for line in dbFile:
+            line = line.split('=')
+            self.dbInfo[line[0]] = line[1].strip('\n')
+        
+    def __checkDB(self, query):
+        cnx = mysql.connector.connect(**self.dbInfo)
+        cursor = cnx.cursor()
+        query = (query)
+        cursor.execute(query)
+        retval = []
+        for item in cursor:
+            retval.append(item)
+        cursor.close()
+        cnx.close()
+        return retval
+        
         
 
     def selectAll(self, event = None):
@@ -93,7 +118,17 @@ class OctoBearApp(Frame):
 
     def __permutePayloads(self, action, inputs, payload = None, offset = 0):
         if offset == len(inputs):
+            try:
+                startCount = self.__checkDB(self.checkQuery)
+            except:
+                pass
             self.obfh.sendRequest(action, payload)
+            try:
+                endCount = self.__checkDB(self.checkQuery)
+                if endCount != startCount:
+                    print 'FAILED', payload
+            except:
+                print 'PASSED' ,payload
             return
         if payload is None:
             payload = {}
@@ -110,8 +145,11 @@ class OctoBearApp(Frame):
         
         temp = [i for i in self.configs if i[0] == 'sql_injections']
         for i in temp[0][2]:
-            payload[inputs[offset]['name']] = i
+            i = i.split('~')
+            payload[inputs[offset]['name']] = i[0]
             self.__permutePayloads(action, inputs, payload, offset + 1)
+            if len(i) > 1:
+                self.checkQuery = i[1]
         
         
         
