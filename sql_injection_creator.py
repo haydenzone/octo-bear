@@ -220,7 +220,7 @@ for filename in fileList:
 #print(queries)
 
 if len(queries) == 0:
-    showerror('SQL Injection Creator', message="No PHP source found")
+    showerror('SQL Injection Creator', message="No PHP source found with database query")
     exit()
     
 root = Tk()
