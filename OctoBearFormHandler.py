@@ -69,3 +69,4 @@ class OctoBearFormHandler:
             return
         
         r = requests.post(self._url + '/' + action, data = payload)
+        

@@ -99,7 +99,7 @@ class OctoBearApp(Frame):
             print '\n'
         except:
             links = {}
-            
+        print links
         if len(links) > 0:
             for url, state in links.items():
                 print "found url:" , url
