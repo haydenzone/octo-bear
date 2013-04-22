@@ -85,10 +85,10 @@ class OctoBearCrawler:
               if link[-3:] == ".js":
                  continue
               if link[0] == '/':
-                 link = url+link[1:]
+                 link = self.url+link[1:]
               if link[0:7] != "http://":
-                 link = url+link
-              if link.find(url) == 0:
+                 link = self.url+link
+              if link.find(self.url) == 0:
                  #store
                  if link not in self.links:
                     self.links[link] = False
