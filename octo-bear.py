@@ -108,7 +108,7 @@ class OctoBearApp(Frame):
                         self.obfh = OctoBearFormHandler(url)
                         for form in self.obfh.forms:
                             Label(self.formsFrame, text='action='+form['action'], background='white').pack()
-                        self.__permutePayloads(form['action'], form['input'])
+                            self.__permutePayloads(form['action'], form['input'])
                         
         else:
             print "no links found"
