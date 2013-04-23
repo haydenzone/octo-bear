@@ -123,6 +123,7 @@ class OctoBearApp(Frame):
                 startCount = self.__checkDB(self.checkQuery)
             except:
                 pass
+            print payload
             self.obfh.sendRequest(action, payload)
             try:
                 endCount = self.__checkDB(self.checkQuery)
@@ -142,15 +143,15 @@ class OctoBearApp(Frame):
                 self.__permutePayloads(action, inputs, payload, offset + 1)
             
         else:
-            self.__permutePayloads(action, inputs, payload, offset + 1)
+            #self.__permutePayloads(action, inputs, payload, offset + 1)
         
-        temp = [i for i in self.configs if i[0] == 'sql_injections']
-        for i in temp[0][2]:
-            i = i.split('~')
-            payload[inputs[offset]['name']] = i[0]
-            self.__permutePayloads(action, inputs, payload, offset + 1)
-            if len(i) > 1:
-                self.checkQuery = i[1]
+            temp = [i for i in self.configs if i[0] == 'sql_injections']
+            for i in temp[0][2]:
+                i = i.split('~')
+                payload[inputs[offset]['name']] = i[0]
+                self.__permutePayloads(action, inputs, payload, offset + 1)
+                if len(i) > 1:
+                    self.checkQuery = i[1]
         
         
         

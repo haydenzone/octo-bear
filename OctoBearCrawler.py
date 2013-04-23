@@ -88,6 +88,7 @@ class OctoBearCrawler:
                  link = self.url+link[1:]
               if link[0:7] != "http://":
                  link = self.url+link
+                 print link
               if link.find(self.url) == 0:
                  #store
                  if link not in self.links:
