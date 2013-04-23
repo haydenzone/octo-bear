@@ -6,6 +6,11 @@ from fnmatch import fnmatch
 from OctoBearFormHandler import OctoBearFormHandler
 from OctoBearCrawler import OctoBearCrawler
 import mysql.connector
+import random as r
+import os.path
+class injection_entry:
+    injection = ""
+    check = ""
 
 class OctoBearApp(Frame):
     def __init__(self, root = None):
@@ -93,22 +98,33 @@ class OctoBearApp(Frame):
         
         
         try:
+            print("=============================")
+            print("Crawling website")
+            print("=============================")
+            
             crawler = OctoBearCrawler(str(self.targetURL.get()))
             crawler.crawl()
             links = crawler.links
             print '\n'
         except:
             links = {}
-        print links
+
         if len(links) > 0:
+            print("=============================")
+            print("Injecting and Checking forms")
+            print("=============================")
             for url, state in links.items():
-                print "found url:" , url
+                print "Targeting url:" , url
                 if state:
 #                    try:
                         self.obfh = OctoBearFormHandler(url)
                         for form in self.obfh.forms:
                             Label(self.formsFrame, text='action='+form['action'], background='white').pack()
-                            self.__permutePayloads(form['action'], form['input'])
+                            failure = self.__permutePayloads(form['action'], form['input'])
+                          
+                            if failure:
+                                return
+
                         
         else:
             print "no links found"
@@ -117,45 +133,59 @@ class OctoBearApp(Frame):
         self.startButton.config(state = NORMAL)
         self.urlEntry.config(state = NORMAL)
 
-    def __permutePayloads(self, action, inputs, payload = None, offset = 0):
-        if offset == len(inputs):
-            try:
-                startCount = self.__checkDB(self.checkQuery)
-            except:
-                pass
-            print payload
-            self.obfh.sendRequest(action, payload)
-            try:
-                endCount = self.__checkDB(self.checkQuery)
-                if endCount != startCount:
-                    print 'FAILED', payload
-            except:
-                pass
-            return
-        if payload is None:
-            payload = {}
-        payload[inputs[offset]['name']] = None
-        
-        temp = [i for i in self.configs if i[0] == inputs[offset]['name']]
-        if len(temp) > 0 and temp[0][1].get() == 1:
-            for i in temp[0][2]:
-                payload[inputs[offset]['name']] = i
-                self.__permutePayloads(action, inputs, payload, offset + 1)
+    def __permutePayloads(self, action, inputs):
+        #action is where form submitted
+        # inputs is a list of firelds
+        self.configs
+        failed = False
+
+        #Get list of injections
+        injections = []
+        temp = [i for i in self.configs if i[0] == 'sql_injections']
+        for i in temp[0][2]:
+            i = i.split('~')
+            temp1 = injection_entry()
+            temp1.injection = i[0]
+            temp1.check = i[1]
+            injections.append(temp1)
+
+        names = list(map(lambda x: x['name'], inputs))
+        names = list(filter(lambda x: x is not None, names))
+
+        valid_inputs = {}
+        for name in names:
+            valid_inputs[name] = []
+            filename = 'config/'+name
+            if os.path.isfile(filename):
+                fin = open(filename)
+                for line in fin:
+                    valid_inputs[name].append(line.strip())
+            else: 
+                valid_inputs[name].append("SAMPLEINPUT")
+            fin.close()
+
+        for inj in injections:
+            #Create the cur_valid_inputs
+            cur_valid_inputs = {}
+            for name in names:
+                cur_valid_inputs[name] = valid_inputs[name][r.randrange(0,len(valid_inputs[name]))]
             
-        else:
-            #self.__permutePayloads(action, inputs, payload, offset + 1)
-        
-            temp = [i for i in self.configs if i[0] == 'sql_injections']
-            for i in temp[0][2]:
-                i = i.split('~')
-                payload[inputs[offset]['name']] = i[0]
-                self.__permutePayloads(action, inputs, payload, offset + 1)
-                if len(i) > 1:
-                    self.checkQuery = i[1]
-        
-        
-        
-        
+            #create injected inputs 
+            for name in names: 
+                cur_injected_input = dict(cur_valid_inputs)
+                cur_injected_input[name] += inj.injection.strip()
+                initial_state = self.__checkDB(inj.check)
+                resp = self.obfh.sendRequest(action, cur_injected_input)
+                final_state = self.__checkDB(inj.check)
+                if len(initial_state) != len(final_state):
+                    print "FAILED"
+                    print "action: "+action
+                    for name in cur_injected_input: 
+                        print "   "+name+": "+cur_injected_input[name]
+                    failed = True
+                    return failed
+        return failed
+                
         
     def __setMenuBar(self):
         self.menubar = Menu(self)

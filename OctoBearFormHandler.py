@@ -17,7 +17,7 @@ class OctoBearFormHandler:
 
     def __initForms(self):
         r = requests.get(self._url)
-        soup = BeautifulSoup(r.text.lower())
+        soup = BeautifulSoup(r.text)
 
         self.forms = []
 
@@ -52,6 +52,7 @@ class OctoBearFormHandler:
         forms = getForms()
 
         for form in forms:
+        print "--------------"
             for key, val in form.items():
                 print key, val, '\n'
 
@@ -66,7 +67,9 @@ class OctoBearFormHandler:
     '''
     def sendRequest(self, action, payload):
         if self.forms is None:
-            return
+            return None
         
-        r = requests.post(self._url + '/' + action, data = payload)
-        
+        #TODO reconstruct URL
+        #r = requests.post(self._url + '/' + action, data = payload)
+        r = requests.post(action, data = payload)
+        return r.text

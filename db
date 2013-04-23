@@ -1,4 +1,4 @@
-user=root
-password=
+user=php
+password=camera
 host=localhost
-database=sandbox
+database=mydb
